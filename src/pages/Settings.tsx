@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, DollarSign, PieChart, Shield } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield } from 'lucide-react';
 
 const Settings = () => {
   const [monthlyBudget, setMonthlyBudget] = useState('2500');
@@ -18,7 +18,7 @@ const Settings = () => {
         >
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-emerald-500 p-3 rounded-lg">
-              <DollarSign size={24} className="text-white" />
+              <IndianRupee size={24} className="text-white" />
             </div>
             <h2 className="text-xl font-bold text-white">Budget Settings</h2>
           </div>
@@ -27,7 +27,7 @@ const Settings = () => {
             <div>
               <label className="block text-gray-400 mb-2">Monthly Budget</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">₹</span>
                 <input
                   type="number"
                   value={monthlyBudget}
