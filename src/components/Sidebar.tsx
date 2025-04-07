@@ -12,12 +12,12 @@ const Sidebar = () => {
     >
       <div className="flex items-center space-x-3 mb-8">
         <img
-          src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=100&h=100&fit=crop"
+          src="https://i.postimg.cc/9F3Ppfrv/anilabh.png"
           alt="Profile"
           className="w-12 h-12 rounded-full"
         />
         <div>
-          <h2 className="font-semibold">John Doe</h2>
+          <h2 className="font-semibold">Anilabh Barua</h2>
           <p className="text-sm text-gray-400">Personal Account</p>
         </div>
       </div>

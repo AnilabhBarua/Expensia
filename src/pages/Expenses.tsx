@@ -15,19 +15,35 @@ interface Expense {
 const mockExpenses: Expense[] = [
   {
     id: 1,
-    title: 'Office Supplies',
-    amount: 150.00,
-    category: 'Business',
-    date: '2024-02-15',
+    title: 'Mess fees',
+    amount: 800.00,
+    category: 'Hostel',
+    date: '2025-03-15',
     status: 'approved'
   },
   {
     id: 2,
-    title: 'Client Dinner',
+    title: 'Mobile recharge',
     amount: 320.00,
-    category: 'Entertainment',
-    date: '2024-02-14',
+    category: 'Personal',
+    date: '2025-03-19',
+    status: 'approved'
+  },
+  {
+    id: 3,
+    title: 'College Exam fees',
+    amount: 1800.00,
+    category: 'Education',
+    date: '2025-03-25',
     status: 'pending'
+  },
+  {
+    id: 4,
+    title: 'Movie ticket',
+    amount: 200.00,
+    category: 'Entertainment',
+    date: '2025-02-14',
+    status: "rejected"
   },
 ];
 
@@ -94,7 +110,7 @@ const ExpensesPage = () => {
               >
                 <td className="px-6 py-4">{expense.title}</td>
                 <td className="px-6 py-4">{expense.category}</td>
-                <td className="px-6 py-4">${expense.amount.toFixed(2)}</td>
+                <td className="px-6 py-4">₹{expense.amount.toFixed(2)}</td>
                 <td className="px-6 py-4">{format(new Date(expense.date), 'MMM dd, yyyy')}</td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-full text-sm ${

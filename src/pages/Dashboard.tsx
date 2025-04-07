@@ -30,9 +30,9 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { title: 'Pending Tasks', value: '5', icon: FileText, color: 'bg-purple-500' },
-          { title: 'Monthly Budget', value: '$2,500', icon: Receipt, color: 'bg-blue-500' },
-          { title: 'Total Expenses', value: '$1,240', icon: Receipt, color: 'bg-emerald-500' },
-          { title: 'Remaining', value: '$1,260', icon: Plane, color: 'bg-pink-500' },
+          { title: 'Monthly Budget', value: '₹2,500', icon: Receipt, color: 'bg-blue-500' },
+          { title: 'Total Expenses', value: '₹1,240', icon: Receipt, color: 'bg-emerald-500' },
+          { title: 'Remaining', value: '₹1,260', icon: Plane, color: 'bg-pink-500' },
         ].map((item, index) => (
           <motion.div
             key={index}
