@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
  preview: {
-    allowedHosts: ["test.hackdays.online"],
+    allowedHosts: ["expensia.site"],
   },
   optimizeDeps: {
     exclude: ['lucide-react'],
