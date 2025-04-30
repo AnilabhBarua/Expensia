@@ -12,7 +12,7 @@ const Sidebar = () => {
     >
       <div className="flex items-center space-x-3 mb-8">
         <img
-          src="https://i.postimg.cc/9F3Ppfrv/anilabh.png"
+          src="https://media.licdn.com/dms/image/v2/D5603AQFIuZ5M8aviYQ/profile-displayphoto-shrink_400_400/B56ZY96rGnGUAo-/0/1744795514236?e=1751500800&v=beta&t=pSdEY9UpmS5SBz5BGRFtJljrMyaLQoRnWdmxDEOnjFM"
           alt="Profile"
           className="w-12 h-12 rounded-full"
         />
