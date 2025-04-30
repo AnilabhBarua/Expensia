@@ -4,9 +4,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 
 import { Plus, Receipt, FileText, Plane } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { expenses, budgetSettings } = useLocalStorage();
+  const navigate = useNavigate();
 
   // Calculate total expenses for the current month
   const currentDate = new Date();
@@ -33,6 +35,10 @@ const Dashboard = () => {
     amount,
   }));
 
+  const handleNewExpense = () => {
+    navigate('/expenses', { state: { openAddModal: true } });
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -40,6 +46,7 @@ const Dashboard = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={handleNewExpense}
           className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
         >
           <Plus size={20} />

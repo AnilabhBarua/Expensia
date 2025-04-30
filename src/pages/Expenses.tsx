@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Filter, Trash2, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
+import { useLocation } from 'react-router-dom';
 
 const ExpensesPage = () => {
   const { expenses, categories, addExpense, updateExpense, deleteExpense } = useLocalStorage();
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingExpense, setEditingExpense] = useState<null | typeof expenses[0]>(null);
+  const location = useLocation();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -16,6 +18,14 @@ const ExpensesPage = () => {
     category: '',
     date: format(new Date(), 'yyyy-MM-dd'),
   });
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      setShowAddModal(true);
+      // Clear the state to prevent modal from reopening on page refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
