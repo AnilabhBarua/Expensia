@@ -2,17 +2,37 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { Plus, Receipt, FileText, Plane } from 'lucide-react';
-
-const data = [
-  { name: 'Jan', amount: 400 },
-  { name: 'Feb', amount: 300 },
-  { name: 'Mar', amount: 600 },
-  { name: 'Apr', amount: 200 },
-  { name: 'May', amount: 500 },
-  { name: 'Jun', amount: 450 },
-];
+import { useLocalStorage } from '../contexts/LocalStorageContext';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 
 const Dashboard = () => {
+  const { expenses, budgetSettings } = useLocalStorage();
+
+  // Calculate total expenses for the current month
+  const currentDate = new Date();
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  
+  const currentMonthExpenses = expenses.filter(expense => {
+    const expenseDate = new Date(expense.date);
+    return expenseDate >= monthStart && expenseDate <= monthEnd;
+  });
+
+  const totalExpenses = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const remaining = budgetSettings.monthlyBudget - totalExpenses;
+
+  // Prepare data for the chart
+  const monthlyData = expenses.reduce((acc, expense) => {
+    const month = format(new Date(expense.date), 'MMM');
+    acc[month] = (acc[month] || 0) + expense.amount;
+    return acc;
+  }, {});
+
+  const chartData = Object.entries(monthlyData).map(([name, amount]) => ({
+    name,
+    amount,
+  }));
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -29,10 +49,10 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { title: 'Pending Tasks', value: '5', icon: FileText, color: 'bg-purple-500' },
-          { title: 'Monthly Budget', value: '₹2,500', icon: Receipt, color: 'bg-blue-500' },
-          { title: 'Total Expenses', value: '₹1,240', icon: Receipt, color: 'bg-emerald-500' },
-          { title: 'Remaining', value: '₹1,260', icon: Plane, color: 'bg-pink-500' },
+          { title: 'Pending Expenses', value: expenses.filter(e => e.status === 'pending').length.toString(), icon: FileText, color: 'bg-purple-500' },
+          { title: 'Monthly Budget', value: `₹${budgetSettings.monthlyBudget.toFixed(2)}`, icon: Receipt, color: 'bg-blue-500' },
+          { title: 'Total Expenses', value: `₹${totalExpenses.toFixed(2)}`, icon: Receipt, color: 'bg-emerald-500' },
+          { title: 'Remaining', value: `₹${remaining.toFixed(2)}`, icon: Plane, color: 'bg-pink-500' },
         ].map((item, index) => (
           <motion.div
             key={index}
@@ -58,7 +78,7 @@ const Dashboard = () => {
         <h2 className="text-xl font-bold text-white mb-6">Monthly Expenses</h2>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" />
               <XAxis dataKey="name" stroke="#666" />
               <YAxis stroke="#666" />

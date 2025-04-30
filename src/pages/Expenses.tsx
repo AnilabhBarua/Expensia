@@ -2,59 +2,62 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Filter, Trash2, Edit } from 'lucide-react';
 import { format } from 'date-fns';
-
-interface Expense {
-  id: number;
-  title: string;
-  amount: number;
-  category: string;
-  date: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
-
-const mockExpenses: Expense[] = [
-  {
-    id: 1,
-    title: 'Mess fees',
-    amount: 800.00,
-    category: 'Hostel',
-    date: '2025-03-15',
-    status: 'approved'
-  },
-  {
-    id: 2,
-    title: 'Mobile recharge',
-    amount: 320.00,
-    category: 'Personal',
-    date: '2025-03-19',
-    status: 'approved'
-  },
-  {
-    id: 3,
-    title: 'College Exam fees',
-    amount: 1800.00,
-    category: 'Education',
-    date: '2025-03-25',
-    status: 'pending'
-  },
-  {
-    id: 4,
-    title: 'Movie ticket',
-    amount: 200.00,
-    category: 'Entertainment',
-    date: '2025-02-14',
-    status: "rejected"
-  },
-];
+import { useLocalStorage } from '../contexts/LocalStorageContext';
 
 const ExpensesPage = () => {
-  const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+  const { expenses, categories, addExpense, updateExpense, deleteExpense } = useLocalStorage();
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingExpense, setEditingExpense] = useState<null | typeof expenses[0]>(null);
 
-  const handleDelete = (id: number) => {
-    setExpenses(expenses.filter(expense => expense.id !== id));
+  const [formData, setFormData] = useState({
+    title: '',
+    amount: '',
+    category: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const expenseData = {
+      title: formData.title,
+      amount: parseFloat(formData.amount),
+      category: formData.category,
+      date: formData.date,
+      status: 'pending' as const,
+    };
+
+    if (editingExpense) {
+      updateExpense({ ...expenseData, id: editingExpense.id });
+    } else {
+      addExpense(expenseData);
+    }
+
+    setShowAddModal(false);
+    setEditingExpense(null);
+    setFormData({
+      title: '',
+      amount: '',
+      category: '',
+      date: format(new Date(), 'yyyy-MM-dd'),
+    });
   };
+
+  const handleEdit = (expense: typeof expenses[0]) => {
+    setEditingExpense(expense);
+    setFormData({
+      title: expense.title,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      date: expense.date,
+    });
+    setShowAddModal(true);
+  };
+
+  const filteredExpenses = expenses.filter(expense =>
+    expense.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    expense.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -63,7 +66,16 @@ const ExpensesPage = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            setEditingExpense(null);
+            setFormData({
+              title: '',
+              amount: '',
+              category: '',
+              date: format(new Date(), 'yyyy-MM-dd'),
+            });
+            setShowAddModal(true);
+          }}
           className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
         >
           <Plus size={20} />
@@ -100,7 +112,7 @@ const ExpensesPage = () => {
             </tr>
           </thead>
           <tbody>
-            {expenses.map((expense) => (
+            {filteredExpenses.map((expense) => (
               <motion.tr
                 key={expense.id}
                 initial={{ opacity: 0 }}
@@ -123,11 +135,14 @@ const ExpensesPage = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex space-x-2">
-                    <button className="p-1 hover:text-emerald-500 transition-colors">
+                    <button
+                      onClick={() => handleEdit(expense)}
+                      className="p-1 hover:text-emerald-500 transition-colors"
+                    >
                       <Edit size={18} />
                     </button>
                     <button
-                      onClick={() => handleDelete(expense.id)}
+                      onClick={() => deleteExpense(expense.id)}
                       className="p-1 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={18} />
@@ -154,42 +169,63 @@ const ExpensesPage = () => {
               exit={{ scale: 0.95 }}
               className="bg-[#212121] p-6 rounded-xl w-full max-w-md"
             >
-              <h2 className="text-2xl font-bold text-white mb-4">Add New Expense</h2>
-              <form className="space-y-4">
+              <h2 className="text-2xl font-bold text-white mb-4">
+                {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-gray-400 mb-2">Title</label>
                   <input
                     type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-gray-400 mb-2">Amount</label>
                   <input
                     type="number"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-gray-400 mb-2">Category</label>
-                  <select className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="business">Business</option>
-                    <option value="entertainment">Entertainment</option>
-                    <option value="food">Food</option>
-                    <option value="travel">Travel</option>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>
                   <label className="block text-gray-400 mb-2">Date</label>
                   <input
                     type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
                   />
                 </div>
                 <div className="flex space-x-4 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingExpense(null);
+                    }}
                     className="flex-1 bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
                   >
                     Cancel
@@ -198,7 +234,7 @@ const ExpensesPage = () => {
                     type="submit"
                     className="flex-1 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
                   >
-                    Add Expense
+                    {editingExpense ? 'Update' : 'Add'} Expense
                   </button>
                 </div>
               </form>
