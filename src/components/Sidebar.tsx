@@ -24,7 +24,7 @@ const Sidebar = () => {
 
       <nav className="space-y-2">
         <NavLink
-          to="/"
+          to="/dashboard"
           className={({ isActive }) =>
             `flex items-center space-x-3 p-3 rounded-lg transition-colors ${
               isActive ? 'bg-[#2a2a2a] text-emerald-400' : 'hover:bg-[#2a2a2a]'
