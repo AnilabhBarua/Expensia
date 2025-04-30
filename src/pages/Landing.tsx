@@ -8,7 +8,7 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#2a2a2a]">
       <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <img src="/2T.png" alt="Expensia" className="h-8 w-8" />
+          <img src="/2TT.png" alt="Expensia" className="h-20 w-13 mr-0" />
           <span className="text-2xl font-bold text-white">Expensia</span>
         </div>
         <Link
