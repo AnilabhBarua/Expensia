@@ -2,8 +2,11 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, CreditCard, Settings, HelpCircle } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
 
 const Sidebar = () => {
+  const { userProfile } = useUser();
+
   return (
     <motion.div
       initial={{ x: -250 }}
@@ -11,13 +14,21 @@ const Sidebar = () => {
       className="w-64 bg-[#212121] text-white p-6 space-y-8"
     >
       <div className="flex items-center space-x-3 mb-8">
-        <img
-          src="https://media.licdn.com/dms/image/v2/D5603AQFIuZ5M8aviYQ/profile-displayphoto-shrink_400_400/B56ZY96rGnGUAo-/0/1744795514236?e=1751500800&v=beta&t=pSdEY9UpmS5SBz5BGRFtJljrMyaLQoRnWdmxDEOnjFM"
-          alt="Profile"
-          className="w-12 h-12 rounded-full"
-        />
+        {userProfile.photoUrl ? (
+          <img
+            src={userProfile.photoUrl}
+            alt="Profile"
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-[#2a2a2a] flex items-center justify-center">
+            <span className="text-gray-400 text-xl">
+              {userProfile.name ? userProfile.name[0].toUpperCase() : '?'}
+            </span>
+          </div>
+        )}
         <div>
-          <h2 className="font-semibold">Anilabh Barua</h2>
+          <h2 className="font-semibold">{userProfile.name || 'Guest User'}</h2>
           <p className="text-sm text-gray-400">Personal Account</p>
         </div>
       </div>
