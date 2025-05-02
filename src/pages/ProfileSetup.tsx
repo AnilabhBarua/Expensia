@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
-import { Camera, IndianRupee, Bell } from 'lucide-react';
+import { Camera, IndianRupee, Bell, ArrowLeft } from 'lucide-react';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -49,6 +49,16 @@ const ProfileSetup = () => {
 
   return (
     <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center p-6">
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="absolute top-6 left-6 text-white flex items-center space-x-2 hover:text-emerald-500 transition-colors"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft size={20} />
+        <span>Back</span>
+      </motion.button>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
