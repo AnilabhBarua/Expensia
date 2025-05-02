@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
-import { Camera, DollarSign, Bell } from 'lucide-react';
+import { Camera, IndianRupee, Bell } from 'lucide-react';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ const ProfileSetup = () => {
           <div>
             <label className="block text-gray-400 mb-2">Monthly Budget</label>
             <div className="relative">
-              <DollarSign size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <IndianRupee size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="number"
                 value={formData.monthlyBudget}

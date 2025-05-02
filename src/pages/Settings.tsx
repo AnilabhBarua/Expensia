@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, DollarSign, PieChart, Shield } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
 
 const Settings = () => {
@@ -70,7 +70,7 @@ const Settings = () => {
         >
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-emerald-500 p-3 rounded-lg">
-              <DollarSign size={24} className="text-white" />
+              <IndianRupee size={24} className="text-white" />
             </div>
             <h2 className="text-xl font-bold text-white">Budget Settings</h2>
           </div>

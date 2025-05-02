@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import { Plus, Receipt, FileText, Plane } from 'lucide-react';
+import { Plus, Receipt, FileText, Plane, IndianRupee } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +55,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
           { title: 'Pending Expenses', value: expenses.filter(e => e.status === 'pending').length.toString(), icon: FileText, color: 'bg-purple-500' },
-          { title: 'Monthly Budget', value: `₹${budgetSettings.monthlyBudget.toFixed(2)}`, icon: Receipt, color: 'bg-blue-500' },
+          { title: 'Monthly Budget', value: `₹${budgetSettings.monthlyBudget.toFixed(2)}`, icon: IndianRupee, color: 'bg-blue-500' },
           { title: 'Total Expenses', value: `₹${totalExpenses.toFixed(2)}`, icon: Receipt, color: 'bg-emerald-500' },
           { title: 'Remaining', value: `₹${remaining.toFixed(2)}`, icon: Plane, color: 'bg-pink-500' },
         ].map((item, index) => (
