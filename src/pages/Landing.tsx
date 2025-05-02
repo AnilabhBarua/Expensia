@@ -1,11 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { BarChart as ChartBar, Shield, Wallet, PieChart, Settings, ArrowRight } from 'lucide-react';
+import { BarChart as ChartBar, Shield, Wallet, PieChart, Settings, ArrowRight, AlertTriangle } from 'lucide-react';
 
 const Landing = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#2a2a2a]">
+      {/* Development Banner */}
+      <div className="bg-yellow-500/10 border-b border-yellow-500/20">
+        <div className="container mx-auto px-6 py-3 flex items-center justify-center text-yellow-500">
+          <AlertTriangle size={20} className="mr-2" />
+          <span>This project is under active development - More features coming soon!</span>
+        </div>
+      </div>
+
       <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <img src="/2TT.png" alt="Expensia" className="h-20 w-13 mr-0" />
@@ -93,6 +101,44 @@ const Landing = () => {
               <p className="text-gray-400">{feature.description}</p>
             </motion.div>
           ))}
+        </div>
+
+        {/* Upcoming Features Section */}
+        <div className="bg-[#212121] rounded-xl p-8 mb-16">
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">Coming Soon</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Multi-Device Sync",
+                description: "Access and manage your expenses seamlessly across all your devices"
+              },
+              {
+                title: "Cloud Backup",
+                description: "Secure cloud backup to never lose your financial data"
+              },
+              {
+                title: "UPI Integration",
+                description: "Direct UPI payment tracking and transaction import"
+              },
+              {
+                title: "Bill Reminders",
+                description: "Never miss a payment with automated bill reminders and notifications"
+              },
+              {
+                title: "Multi-Currency Support",
+                description: "Track expenses in multiple currencies with real-time conversion rates"
+              },
+              {
+                title: "Receipt Scanner",
+                description: "Automatically extract expense details from photos of receipts"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="bg-[#2a2a2a] p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-emerald-500 mb-2">{feature.title}</h3>
+                <p className="text-gray-400">{feature.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="text-center">
