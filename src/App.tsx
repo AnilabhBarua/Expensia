@@ -6,10 +6,12 @@ import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
+import DevelopmentTag from './components/DevelopmentTag';
 
 function App() {
   return (
     <Router>
+      <DevelopmentTag />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route
