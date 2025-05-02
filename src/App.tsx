@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Sidebar from './components/Sidebar';
@@ -9,6 +9,7 @@ import Settings from './pages/Settings';
 import ProfileSetup from './pages/ProfileSetup';
 import DevelopmentTag from './components/DevelopmentTag';
 import { useUser } from './contexts/UserContext';
+import { Menu } from 'lucide-react';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { userProfile } = useUser();
@@ -24,6 +25,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <Router>
       <DevelopmentTag />
@@ -34,9 +37,33 @@ function App() {
           path="/*"
           element={
             <ProtectedRoute>
-              <div className="flex min-h-screen bg-[#1a1a1a]">
-                <Sidebar />
-                <main className="flex-1 p-8">
+              <div className="flex flex-col md:flex-row min-h-screen bg-[#1a1a1a]">
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="md:hidden fixed top-4 left-4 z-50 bg-[#212121] p-2 rounded-lg text-white"
+                >
+                  <Menu size={24} />
+                </button>
+
+                {/* Sidebar with mobile support */}
+                <div
+                  className={`${
+                    isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                  } md:translate-x-0 fixed md:relative z-40 transition-transform duration-300 ease-in-out`}
+                >
+                  <Sidebar onClose={() => setIsSidebarOpen(false)} />
+                </div>
+
+                {/* Overlay for mobile */}
+                {isSidebarOpen && (
+                  <div
+                    className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                  />
+                )}
+
+                <main className="flex-1 p-4 md:p-8 mt-16 md:mt-0">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

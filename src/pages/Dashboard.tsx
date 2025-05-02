@@ -10,7 +10,6 @@ const Dashboard = () => {
   const { expenses, budgetSettings } = useLocalStorage();
   const navigate = useNavigate();
 
-  // Calculate total expenses for the current month
   const currentDate = new Date();
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -23,7 +22,6 @@ const Dashboard = () => {
   const totalExpenses = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
   const remaining = budgetSettings.monthlyBudget - totalExpenses;
 
-  // Prepare data for the chart
   const monthlyData = expenses.reduce((acc, expense) => {
     const month = format(new Date(expense.date), 'MMM');
     acc[month] = (acc[month] || 0) + expense.amount;
@@ -40,21 +38,21 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleNewExpense}
-          className="bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+          className="w-full sm:w-auto bg-emerald-500 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2"
         >
           <Plus size={20} />
           <span>New Expense</span>
         </motion.button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {[
           { title: 'Pending Expenses', value: expenses.filter(e => e.status === 'pending').length.toString(), icon: FileText, color: 'bg-purple-500' },
           { title: 'Monthly Budget', value: `₹${budgetSettings.monthlyBudget.toFixed(2)}`, icon: Receipt, color: 'bg-blue-500' },
@@ -66,24 +64,24 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-[#212121] p-6 rounded-xl"
+            className="bg-[#212121] p-4 sm:p-6 rounded-xl"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400">{item.title}</p>
-                <h3 className="text-2xl font-bold text-white mt-1">{item.value}</h3>
+                <p className="text-sm sm:text-base text-gray-400">{item.title}</p>
+                <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">{item.value}</h3>
               </div>
-              <div className={`${item.color} p-3 rounded-lg`}>
-                <item.icon size={24} className="text-white" />
+              <div className={`${item.color} p-2 sm:p-3 rounded-lg`}>
+                <item.icon size={20} className="text-white" />
               </div>
             </div>
           </motion.div>
         ))}
       </div>
 
-      <div className="bg-[#212121] p-6 rounded-xl">
-        <h2 className="text-xl font-bold text-white mb-6">Monthly Expenses</h2>
-        <div className="h-80">
+      <div className="bg-[#212121] p-4 sm:p-6 rounded-xl">
+        <h2 className="text-lg sm:text-xl font-bold text-white mb-6">Monthly Expenses</h2>
+        <div className="h-60 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#333" />
