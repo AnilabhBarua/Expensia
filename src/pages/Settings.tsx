@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, IndianRupee, PieChart, Shield, Download, Upload } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield, Download, Upload, User, Camera } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
+import { useUser } from '../contexts/UserContext';
 
 const Settings = () => {
   const {
@@ -15,9 +16,16 @@ const Settings = () => {
     importData
   } = useLocalStorage();
 
+  const { userProfile, updateProfile } = useUser();
   const [newCategory, setNewCategory] = useState('');
   const [showAddCategory, setShowAddCategory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profilePhotoRef = useRef<HTMLInputElement>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: userProfile.name,
+    photoUrl: userProfile.photoUrl,
+  });
 
   const handleBudgetChange = (value: string) => {
     updateBudgetSettings({
@@ -100,11 +108,119 @@ const Settings = () => {
     event.target.value = '';
   };
 
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileData(prev => ({ ...prev, photoUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleProfileUpdate = () => {
+    updateProfile({
+      name: profileData.name,
+      photoUrl: profileData.photoUrl,
+    });
+    setEditingProfile(false);
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-white">Settings</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-[#212121] p-6 rounded-xl"
+        >
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-blue-500 p-3 rounded-lg">
+              <User size={24} className="text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Profile Settings</h2>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-[#2a2a2a] overflow-hidden">
+                  {(editingProfile ? profileData.photoUrl : userProfile.photoUrl) ? (
+                    <img
+                      src={editingProfile ? profileData.photoUrl : userProfile.photoUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User size={32} className="text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                {editingProfile && (
+                  <>
+                    <button
+                      onClick={() => profilePhotoRef.current?.click()}
+                      className="absolute bottom-0 right-0 bg-emerald-500 p-2 rounded-full cursor-pointer hover:bg-emerald-600 transition-colors"
+                    >
+                      <Camera size={16} className="text-white" />
+                    </button>
+                    <input
+                      type="file"
+                      ref={profilePhotoRef}
+                      onChange={handleProfilePhotoChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                  </>
+                )}
+              </div>
+              
+              {editingProfile ? (
+                <>
+                  <input
+                    type="text"
+                    value={profileData.name}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="Your name"
+                  />
+                  <div className="flex space-x-3 w-full">
+                    <button
+                      onClick={() => setEditingProfile(false)}
+                      className="flex-1 bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleProfileUpdate}
+                      className="flex-1 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold text-white">{userProfile.name}</h3>
+                    <p className="text-gray-400">Personal Account</p>
+                  </div>
+                  <button
+                    onClick={() => setEditingProfile(true)}
+                    className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
+                  >
+                    Edit Profile
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
