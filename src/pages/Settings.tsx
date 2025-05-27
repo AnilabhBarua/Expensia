@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, IndianRupee, PieChart, Shield } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield, Download, Upload } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
 
 const Settings = () => {
@@ -10,11 +10,14 @@ const Settings = () => {
     categories,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    expenses,
+    importData
   } = useLocalStorage();
 
   const [newCategory, setNewCategory] = useState('');
   const [showAddCategory, setShowAddCategory] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleBudgetChange = (value: string) => {
     updateBudgetSettings({
@@ -56,6 +59,45 @@ const Settings = () => {
         budgetPercentage: percentage,
       });
     }
+  };
+
+  const handleExportData = () => {
+    const data = {
+      expenses,
+      categories,
+      budgetSettings,
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `expensia-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        importData(data);
+      } catch (error) {
+        alert('Invalid backup file format');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
   };
 
   return (
@@ -218,16 +260,31 @@ const Settings = () => {
             <div className="bg-red-500 p-3 rounded-lg">
               <Shield size={24} className="text-white" />
             </div>
-            <h2 className="text-xl font-bold text-white">Security</h2>
+            <h2 className="text-xl font-bold text-white">Data Management</h2>
           </div>
           
           <div className="space-y-4">
-            <button className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors">
-              Export Data
+            <button 
+              onClick={handleExportData}
+              className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2"
+            >
+              <Download size={18} />
+              <span>Export Backup</span>
             </button>
-            <button className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors">
-              Clear All Data
+            <button 
+              onClick={handleImportClick}
+              className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2"
+            >
+              <Upload size={18} />
+              <span>Import Backup</span>
             </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileImport}
+              accept=".json"
+              className="hidden"
+            />
           </div>
         </motion.div>
       </div>

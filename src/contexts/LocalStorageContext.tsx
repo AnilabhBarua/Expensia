@@ -21,6 +21,12 @@ interface BudgetSettings {
   notificationsEnabled: boolean;
 }
 
+interface BackupData {
+  expenses: Expense[];
+  categories: Category[];
+  budgetSettings: BudgetSettings;
+}
+
 interface LocalStorageContextType {
   expenses: Expense[];
   categories: Category[];
@@ -32,6 +38,7 @@ interface LocalStorageContextType {
   updateCategory: (category: Category) => void;
   deleteCategory: (id: string) => void;
   updateBudgetSettings: (settings: BudgetSettings) => void;
+  importData: (data: BackupData) => void;
 }
 
 const defaultBudgetSettings: BudgetSettings = {
@@ -138,6 +145,17 @@ export const LocalStorageProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setBudgetSettings(settings);
   };
 
+  const importData = (data: BackupData) => {
+    try {
+      setExpenses(data.expenses);
+      setCategories(data.categories);
+      setBudgetSettings(data.budgetSettings);
+    } catch (error) {
+      console.error('Failed to import data:', error);
+      alert('Failed to import data. Please check the file format.');
+    }
+  };
+
   return (
     <LocalStorageContext.Provider
       value={{
@@ -151,6 +169,7 @@ export const LocalStorageProvider: React.FC<{ children: React.ReactNode }> = ({ 
         updateCategory,
         deleteCategory,
         updateBudgetSettings,
+        importData,
       }}
     >
       {children}
