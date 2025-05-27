@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
-import { Camera, IndianRupee, Bell, ArrowLeft } from 'lucide-react';
+import { Camera, IndianRupee, Bell, ArrowLeft, Upload } from 'lucide-react';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { updateProfile } = useUser();
-  const { updateBudgetSettings } = useLocalStorage();
+  const { updateBudgetSettings, importData } = useLocalStorage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,6 +28,37 @@ const ProfileSetup = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target?.result as string);
+        importData(data);
+        // Pre-fill form with imported budget settings if available
+        if (data.budgetSettings) {
+          setFormData(prev => ({
+            ...prev,
+            monthlyBudget: data.budgetSettings.monthlyBudget.toString(),
+            alertThreshold: data.budgetSettings.alertThreshold.toString(),
+            notificationsEnabled: data.budgetSettings.notificationsEnabled,
+          }));
+        }
+        alert('Data imported successfully!');
+      } catch (error) {
+        alert('Invalid backup file format');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +96,23 @@ const ProfileSetup = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-[#212121] p-8 rounded-xl w-full max-w-md"
       >
-        <h1 className="text-3xl font-bold text-white mb-6">Setup Your Profile</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-white">Setup Your Profile</h1>
+          <button
+            onClick={handleImportClick}
+            className="text-emerald-500 hover:text-emerald-400 flex items-center space-x-2"
+          >
+            <Upload size={20} />
+            <span>Import</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileImport}
+            accept=".json"
+            className="hidden"
+          />
+        </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col items-center mb-6">
