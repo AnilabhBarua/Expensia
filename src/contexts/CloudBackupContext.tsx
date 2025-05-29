@@ -163,10 +163,25 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
         timestamp: new Date().toISOString(),
       };
 
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const metadata = {
-        name: `expensia-backup-${new Date().toISOString()}.json`,
+        name: `expensia-backup-${timestamp}.json`,
         mimeType: 'application/json',
       };
+
+      // Create multipart request
+      const boundary = 'boundary' + Math.random().toString().slice(2);
+      const delimiter = '--' + boundary + '\r\n';
+      const closeDelimiter = '--' + boundary + '--';
+
+      // Create the multipart request body
+      let requestBody = delimiter;
+      requestBody += 'Content-Type: application/json\r\n\r\n';
+      requestBody += JSON.stringify(metadata) + '\r\n';
+      requestBody += delimiter;
+      requestBody += 'Content-Type: application/json\r\n\r\n';
+      requestBody += JSON.stringify(backupData) + '\r\n';
+      requestBody += closeDelimiter;
 
       const response = await fetch(
         'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
@@ -174,12 +189,9 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
           method: 'POST',
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
+            'Content-Type': `multipart/related; boundary=${boundary}`,
           },
-          body: JSON.stringify({
-            ...metadata,
-            content: backupData,
-          }),
+          body: requestBody,
         }
       );
 
@@ -195,6 +207,65 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
       await cleanupOldBackups(accessToken);
     } catch (error) {
       console.error('Backup failed:', error);
+      throw error;
+    } finally {
+      setBackupInProgress(false);
+    }
+  };
+
+  const restore = async () => {
+    try {
+      setBackupInProgress(true);
+      const accessToken = localStorage.getItem('googleAccessToken');
+      
+      if (!accessToken) {
+        throw new Error('Not authenticated');
+      }
+
+      // List files to find the latest backup
+      const listResponse = await fetch(
+        'https://www.googleapis.com/drive/v3/files?q=name contains \'expensia-backup-\'&orderBy=createdTime desc&pageSize=1',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!listResponse.ok) {
+        throw new Error('Failed to list backups');
+      }
+
+      const { files } = await listResponse.json();
+      if (!files || files.length === 0) {
+        throw new Error('No backup found');
+      }
+
+      // Get the latest backup file
+      const latestBackup = files[0];
+      const fileResponse = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${latestBackup.id}?alt=media`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!fileResponse.ok) {
+        throw new Error('Failed to fetch backup data');
+      }
+
+      const backupData = await fileResponse.json();
+      
+      // Validate backup data structure
+      if (!backupData.expenses || !backupData.categories || !backupData.budgetSettings) {
+        throw new Error('Invalid backup data format');
+      }
+
+      importData(backupData);
+    } catch (error) {
+      console.error('Restore failed:', error);
       throw error;
     } finally {
       setBackupInProgress(false);
@@ -236,59 +307,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     return () => clearInterval(backupInterval);
   }, [autoBackupEnabled, isAuthenticated]);
-
-  const restore = async () => {
-    try {
-      setBackupInProgress(true);
-      const accessToken = localStorage.getItem('googleAccessToken');
-      
-      if (!accessToken) {
-        throw new Error('Not authenticated');
-      }
-
-      // List files to find the latest backup
-      const listResponse = await fetch(
-        'https://www.googleapis.com/drive/v3/files?q=name contains \'expensia-backup-\'&orderBy=createdTime desc',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!listResponse.ok) {
-        throw new Error('Failed to list backups');
-      }
-
-      const { files } = await listResponse.json();
-      if (!files || files.length === 0) {
-        throw new Error('No backup found');
-      }
-
-      // Get the latest backup file
-      const latestBackup = files[0];
-      const fileResponse = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${latestBackup.id}?alt=media`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!fileResponse.ok) {
-        throw new Error('Failed to fetch backup data');
-      }
-
-      const backupData = await fileResponse.json();
-      importData(backupData);
-    } catch (error) {
-      console.error('Restore failed:', error);
-      throw error;
-    } finally {
-      setBackupInProgress(false);
-    }
-  };
 
   return (
     <CloudBackupContext.Provider
