@@ -1,20 +1,32 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, IndianRupee, PieChart, Shield, Download, Upload, User, Camera } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield, Download, Upload, User, Camera, Cloud } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
+import { useCloudBackup } from '../contexts/CloudBackupContext';
 import { useUser } from '../contexts/UserContext';
+import { format } from 'date-fns';
 
 const Settings = () => {
   const {
-    budgetSettings,
-    updateBudgetSettings,
+    expenses,
     categories,
+    budgetSettings,
     addCategory,
     updateCategory,
     deleteCategory,
-    expenses,
     importData
   } = useLocalStorage();
+
+  const {
+    isAuthenticated,
+    lastBackupDate,
+    backupInProgress,
+    autoBackupEnabled,
+    setAutoBackupEnabled,
+    authenticate,
+    backup,
+    restore
+  } = useCloudBackup();
 
   const { userProfile, updateProfile } = useUser();
   const [newCategory, setNewCategory] = useState('');
@@ -127,11 +139,37 @@ const Settings = () => {
     setEditingProfile(false);
   };
 
+  const handleCloudBackup = async () => {
+    try {
+      if (!isAuthenticated) {
+        await authenticate();
+      }
+      await backup();
+    } catch (error) {
+      console.error('Cloud backup failed:', error);
+      alert('Failed to backup to Google Drive. Please try again.');
+    }
+  };
+
+  const handleCloudRestore = async () => {
+    try {
+      if (!isAuthenticated) {
+        await authenticate();
+      }
+      await restore();
+      alert('Data restored successfully from Google Drive!');
+    } catch (error) {
+      console.error('Cloud restore failed:', error);
+      alert('Failed to restore from Google Drive. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold text-white">Settings</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Profile Settings Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -221,6 +259,7 @@ const Settings = () => {
           </div>
         </motion.div>
 
+        {/* Budget Settings Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -258,6 +297,7 @@ const Settings = () => {
           </div>
         </motion.div>
 
+        {/* Notifications Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -299,6 +339,7 @@ const Settings = () => {
           </div>
         </motion.div>
 
+        {/* Categories Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -366,11 +407,12 @@ const Settings = () => {
           </div>
         </motion.div>
 
+        {/* Data Management Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-[#212121] p-6 rounded-xl"
+          className="bg-[#212121] p-6 rounded-xl col-span-2"
         >
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-red-500 p-3 rounded-lg">
@@ -380,19 +422,62 @@ const Settings = () => {
           </div>
           
           <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-gray-400">Automatic Cloud Backup</span>
+              <button
+                onClick={() => setAutoBackupEnabled(!autoBackupEnabled)}
+                className={`w-12 h-6 rounded-full transition-colors ${
+                  autoBackupEnabled ? 'bg-emerald-500' : 'bg-[#2a2a2a]'
+                }`}
+              >
+                <motion.div
+                  animate={{ x: autoBackupEnabled ? 24 : 2 }}
+                  className="w-5 h-5 bg-white rounded-full"
+                />
+              </button>
+            </div>
+
+            <div className="flex flex-col space-y-2">
+              <button 
+                onClick={handleCloudBackup}
+                disabled={backupInProgress}
+                className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                <Cloud size={18} />
+                <span>{backupInProgress ? 'Backing up...' : 'Backup to Google Drive'}</span>
+              </button>
+              {lastBackupDate && (
+                <p className="text-sm text-gray-400 text-center">
+                  Last backup: {format(lastBackupDate, 'MMM dd, yyyy HH:mm')}
+                </p>
+              )}
+            </div>
+
+            <button 
+              onClick={handleCloudRestore}
+              disabled={backupInProgress}
+              className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+            >
+              <Cloud size={18} />
+              <span>{backupInProgress ? 'Restoring...' : 'Restore from Google Drive'}</span>
+            </button>
+
+            <div className="border-t border-[#2a2a2a] my-4"></div>
+
             <button 
               onClick={handleExportData}
               className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2"
             >
               <Download size={18} />
-              <span>Export Backup</span>
+              <span>Export Local Backup</span>
             </button>
+            
             <button 
               onClick={handleImportClick}
               className="w-full bg-[#2a2a2a] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors flex items-center justify-center space-x-2"
             >
               <Upload size={18} />
-              <span>Import Backup</span>
+              <span>Import Local Backup</span>
             </button>
             <input
               type="file"
