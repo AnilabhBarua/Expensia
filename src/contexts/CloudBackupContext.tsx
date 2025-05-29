@@ -17,7 +17,7 @@ const CloudBackupContext = createContext<CloudBackupContextType | undefined>(und
 
 const AUTO_BACKUP_INTERVAL = 1000 * 60 * 60; // 1 hour
 const BACKUP_VERSIONS_TO_KEEP = 10;
-const CLIENT_ID = '171751461131-ggbef1tbrj88u8kr1hrkit6qhef2aba6.apps.googleusercontent.com';
+const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,17 +30,14 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
   
   const { expenses, categories, budgetSettings, importData } = useLocalStorage();
 
-  // Load last backup date from localStorage
   useEffect(() => {
     const storedDate = localStorage.getItem('lastBackupDate');
     if (storedDate) {
       setLastBackupDate(new Date(storedDate));
     }
 
-    // Check if already authenticated
     const token = localStorage.getItem('googleAccessToken');
     if (token) {
-      // Verify token validity
       fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name)', {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -59,7 +56,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, []);
 
-  // Save auto backup preference
   useEffect(() => {
     localStorage.setItem('autoBackupEnabled', autoBackupEnabled.toString());
   }, [autoBackupEnabled]);
@@ -103,7 +99,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
         window.addEventListener('message', handleMessage);
 
-        // Check if popup was closed
         const checkClosed = setInterval(() => {
           if (authWindow.closed) {
             clearInterval(checkClosed);
@@ -133,7 +128,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
       const { files } = await response.json();
       
-      // Keep only the latest BACKUP_VERSIONS_TO_KEEP versions
       const filesToDelete = files.slice(BACKUP_VERSIONS_TO_KEEP);
       
       for (const file of filesToDelete) {
@@ -203,7 +197,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLastBackupDate(newBackupDate);
       localStorage.setItem('lastBackupDate', newBackupDate.toISOString());
 
-      // Cleanup old backups
       await cleanupOldBackups(accessToken);
     } catch (error) {
       console.error('Backup failed:', error);
@@ -222,7 +215,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw new Error('Not authenticated');
       }
 
-      // List files to find the latest backup
       const listResponse = await fetch(
         'https://www.googleapis.com/drive/v3/files?q=name contains \'expensia-backup-\'&orderBy=createdTime desc&pageSize=1',
         {
@@ -241,7 +233,6 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
         throw new Error('No backup found');
       }
 
-      // Get the latest backup file
       const latestBackup = files[0];
       const fileResponse = await fetch(
         `https://www.googleapis.com/drive/v3/files/${latestBackup.id}?alt=media`,
