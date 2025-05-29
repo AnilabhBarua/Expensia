@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, IndianRupee, PieChart, Shield, Download, Upload, User, Camera, Cloud } from 'lucide-react';
+import { Bell, IndianRupee, PieChart, Shield, Download, Upload, User, Camera, Cloud, Check, X } from 'lucide-react';
 import { useLocalStorage } from '../contexts/LocalStorageContext';
 import { useCloudBackup } from '../contexts/CloudBackupContext';
 import { useUser } from '../contexts/UserContext';
@@ -422,6 +422,26 @@ const Settings = () => {
           </div>
           
           <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-[#2a2a2a] rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Cloud size={20} className={isAuthenticated ? "text-emerald-500" : "text-gray-400"} />
+                <span className="text-white">Google Drive Connection</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                {isAuthenticated ? (
+                  <>
+                    <Check size={16} className="text-emerald-500" />
+                    <span className="text-emerald-500">Connected</span>
+                  </>
+                ) : (
+                  <>
+                    <X size={16} className="text-gray-400" />
+                    <span className="text-gray-400">Not Connected</span>
+                  </>
+                )}
+              </div>
+            </div>
+
             <div className="flex items-center justify-between mb-4">
               <span className="text-gray-400">Automatic Cloud Backup</span>
               <button

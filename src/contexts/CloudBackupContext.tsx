@@ -17,6 +17,8 @@ const CloudBackupContext = createContext<CloudBackupContextType | undefined>(und
 
 const AUTO_BACKUP_INTERVAL = 1000 * 60 * 60; // 1 hour
 const BACKUP_VERSIONS_TO_KEEP = 10;
+const CLIENT_ID = '171751461131-ggbef1tbrj88u8kr1hrkit6qhef2aba6.apps.googleusercontent.com';
+const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 
 export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +36,27 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (storedDate) {
       setLastBackupDate(new Date(storedDate));
     }
+
+    // Check if already authenticated
+    const token = localStorage.getItem('googleAccessToken');
+    if (token) {
+      // Verify token validity
+      fetch('https://www.googleapis.com/drive/v3/files?fields=files(id,name)', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(response => {
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('googleAccessToken');
+          setIsAuthenticated(false);
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('googleAccessToken');
+        setIsAuthenticated(false);
+      });
+    }
   }, []);
 
   // Save auto backup preference
@@ -43,23 +66,52 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const authenticate = async () => {
     try {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      const scope = 'https://www.googleapis.com/auth/drive.file';
+      const redirectUri = `${window.location.origin}/auth-callback`;
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${CLIENT_ID}&` +
+        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+        `response_type=token&` +
+        `scope=${encodeURIComponent(SCOPE)}`;
       
       const authWindow = window.open(
-        `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&response_type=token&scope=${scope}&redirect_uri=${window.location.origin}/auth-callback`,
-        'Auth',
-        'width=500,height=600'
+        authUrl,
+        'Google Auth',
+        'width=600,height=600,menubar=no,toolbar=no,location=no,status=no'
       );
 
-      if (authWindow) {
-        window.addEventListener('message', async (event) => {
-          if (event.data.type === 'GOOGLE_AUTH') {
-            setIsAuthenticated(true);
-            localStorage.setItem('googleAccessToken', event.data.accessToken);
-          }
-        });
+      if (!authWindow) {
+        throw new Error('Popup blocked. Please allow popups and try again.');
       }
+
+      return new Promise<void>((resolve, reject) => {
+        const handleMessage = (event: MessageEvent) => {
+          if (event.origin !== window.location.origin) return;
+          
+          if (event.data.type === 'GOOGLE_AUTH') {
+            window.removeEventListener('message', handleMessage);
+            const { accessToken } = event.data;
+            
+            if (accessToken) {
+              localStorage.setItem('googleAccessToken', accessToken);
+              setIsAuthenticated(true);
+              resolve();
+            } else {
+              reject(new Error('Authentication failed'));
+            }
+          }
+        };
+
+        window.addEventListener('message', handleMessage);
+
+        // Check if popup was closed
+        const checkClosed = setInterval(() => {
+          if (authWindow.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener('message', handleMessage);
+            reject(new Error('Authentication cancelled'));
+          }
+        }, 1000);
+      });
     } catch (error) {
       console.error('Authentication failed:', error);
       throw error;
@@ -68,14 +120,18 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const cleanupOldBackups = async (accessToken: string) => {
     try {
-      const listResponse = await fetch(
+      const response = await fetch(
         'https://www.googleapis.com/drive/v3/files?q=name contains \'expensia-backup-\'&orderBy=createdTime desc',
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
 
-      const { files } = await listResponse.json();
+      if (!response.ok) {
+        throw new Error('Failed to list backups');
+      }
+
+      const { files } = await response.json();
       
       // Keep only the latest BACKUP_VERSIONS_TO_KEEP versions
       const filesToDelete = files.slice(BACKUP_VERSIONS_TO_KEEP);
@@ -107,23 +163,25 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
         timestamp: new Date().toISOString(),
       };
 
-      const file = new Blob([JSON.stringify(backupData)], { type: 'application/json' });
       const metadata = {
         name: `expensia-backup-${new Date().toISOString()}.json`,
         mimeType: 'application/json',
       };
 
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', file);
-
-      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: form,
-      });
+      const response = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...metadata,
+            content: backupData,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Backup failed');
@@ -198,6 +256,10 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       );
 
+      if (!listResponse.ok) {
+        throw new Error('Failed to list backups');
+      }
+
       const { files } = await listResponse.json();
       if (!files || files.length === 0) {
         throw new Error('No backup found');
@@ -213,6 +275,10 @@ export const CloudBackupProvider: React.FC<{ children: React.ReactNode }> = ({ c
           },
         }
       );
+
+      if (!fileResponse.ok) {
+        throw new Error('Failed to fetch backup data');
+      }
 
       const backupData = await fileResponse.json();
       importData(backupData);
