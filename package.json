@@ -15,15 +15,18 @@
     "date-fns": "^4.1.0",
     "express": "^5.1.0",
     "framer-motion": "^12.23.21",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.544.0",
     "mysql2": "^3.15.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.2",
-    "recharts": "^3.2.1"
+    "recharts": "^3.2.1",
+    "rollup-plugin-visualizer": "^6.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@tailwindcss/postcss": "^4.1.13",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
@@ -33,7 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.21",
     "globals": "^16.4.0",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.13",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.44.1",
     "vite": "^7.1.7"
